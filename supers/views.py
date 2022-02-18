@@ -10,16 +10,32 @@ from supers import serializers
 
 @api_view(['GET', 'POST'])
 def super_list(request):
-    if request.method == 'GET':
-        supers = Super.objects.all()
-        serializer = SuperSerializer(supers, many=True)
-        return Response(serializer.data)
+
+    super_types_param = request.query_params.get('type')
+    sort_param = request.query_params.get('sort')
+
+    supers = Super.objects.all()
+
+    if super_types_param:
+        supers = supers.filter(super_types__name=super_types_param)
+
+    if sort_param:
+        supers = supers.order_by(sort_param)
+
     
-    elif request.method == 'POST':
-        serializer = SuperSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    serializer = SuperSerializer(supers, many=True)
+    return Response(serializer.data)
+
+    # if request.method == 'GET':
+    #     supers = Super.objects.all()
+    #     serializer = SuperSerializer(supers, many=True)
+    #     return Response(serializer.data)
+    
+    # elif request.method == 'POST':
+    #     serializer = SuperSerializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     serializer.save()
+    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
