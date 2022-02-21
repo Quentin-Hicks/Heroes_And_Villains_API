@@ -2,8 +2,11 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+
+from super_types.serializers import SuperTypeSerializer
 from .serializers import SuperSerializer
 from .models import Super
+from .models import SuperType
 from supers import serializers
 
 # Create your views here.
@@ -15,6 +18,8 @@ def super_list(request):
 
     supers = Super.objects.all()
 
+    super_types = SuperType.objects.all()
+
     if super_types_param == 'hero':
         supers = supers.filter(super_type__type=super_types_param)
         serializer = SuperSerializer(supers, many=True)
@@ -24,8 +29,18 @@ def super_list(request):
         serializer = SuperSerializer(supers, many=True)
         return Response(serializer.data)
     else:
-        serializer = SuperSerializer(supers, many=True)
-        return Response(serializer.data)
+        heroes = supers.filter(super_type__type = 'Hero')
+        villains = supers.filter(super_type__type = 'Villain')
+
+        hero_serializer = SuperSerializer(heroes, many=True)
+        villain_serializer = SuperSerializer(villains, many=True)
+
+        custom_response = {
+            "Heroes": hero_serializer.data,
+            "Villains": villain_serializer.data
+        }
+        
+        return Response(custom_response)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
